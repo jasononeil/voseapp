@@ -1,0 +1,7 @@
+-lib thx 
+-lib detox
+-lib selecthxml
+-lib tink_core
+-cp Source 
+-main CommandLine
+-neko Export/commandline.n
