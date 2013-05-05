@@ -2,42 +2,72 @@ package vidproject.commands;
 
 using Detox;
 using StringTools;
+import dtx.DOMNode;
+import haxe.ds.StringMap;
 import sys.FileSystem;
+import sys.io.File;
 import Sys.println;
 
 class Render
 {
-    var xml:dtx.DOMCollection;
-
     public function new(project:String, renderType:RenderType)
     {
-        var str = sys.io.File.getContent(project);
-        xml = str.parse();
-        var parts = getSegmentsToExport();
+        // Get the project file
+        var str = File.getContent(project);
+        var projectXml = str.parse();
 
+        // Read the Xml to get segments to export
+        var parts = getSegmentsToExport(projectXml);
+
+        // Figure out the export path
         var projectPath = project.split("/");
-        var filename = projectPath.pop();
-        var extension = switch(renderType)
-        {
+        var projectFileName = projectPath.pop();
+        var extension = switch(renderType) {
             case MP3: "MP3";
             case DVD: "VOB";
         }
-        var exportDir = projectPath.join("/") + "/Exports/" + extension.toUpperCase();
 
+        // Make sure we're not using proxy clips, and save a temp version of the project
+        var readyToRenderXml = prepareXmlForExport(projectXml);
+        var projectExportFileName = '.$projectFileName.${Date.now().getTime()}.mlt';
+        var projectExportFilePath = projectPath.join("/") + "/" + projectExportFileName;
+        File.saveContent(projectExportFilePath, readyToRenderXml.html());
+
+        // Create the export DIR if it doesn't exist
+        var exportDir = projectPath.join("/") + "/Exports/" + extension.toUpperCase();
         if (!FileSystem.exists(exportDir)) FileSystem.createDirectory(exportDir);
+        
+        // Render each part, if it doesn't exist
+        var showRmRfMessage = false;
         for (part in parts)
         {
-            var result = renderPortion(filename, '$exportDir/${part.segment}.$extension', part.startPoint, part.endPoint, renderType);
-
-            if (!result)
+            var partFileName = '$exportDir/${part.segment}.$extension';
+            if (!FileSystem.exists(partFileName))
             {
-                println("Failed to render... Exiting early");
+                var result = renderPortion(projectExportFilePath, partFileName, part.startPoint, part.endPoint, renderType);
+
+                if (!result)
+                {
+                    println("Failed to render... Exiting early");
+                    showRmRfMessage = true;
+                    break;
+                }
             }
+            else 
+            {
+                trace ('File $partFileName already exists, skipping rendering.  ');
+                showRmRfMessage = true;
+            }
+
+        }
+        if (showRmRfMessage)
+        {
+            trace ('  Run `rm -rf $exportDir/*` to delete all existing renders.');
         }
     }
 
     // Given the project Xml, find the track by the given name
-    function findTrackByName(name:String)
+    function findTrackByName(xml:dtx.DOMCollection, name:String)
     {
         // Search for child <kdenlivedoc> (should be last child, should only be one of them)
         // This is the data that isn't important to rendering, but is to the project - tracknames, project imports etc.
@@ -61,14 +91,13 @@ class Render
         var mltPlaylists = xml.find('playlist');
         var ourplaylist = mltPlaylists.getNode(index + 1);
 
-
         // Return this playlist.
         return ourplaylist;
     }
 
-    function getSegmentsToExport()
+    function getSegmentsToExport(xml:dtx.DOMCollection)
     {
-        var playlist = findTrackByName("Break");
+        var playlist = findTrackByName(xml, "Break");
 
         var partsToExport = new Array<ExportDefinition>();
 
@@ -108,25 +137,94 @@ class Render
         return partsToExport;
     }
 
+    function prepareXmlForExport(inXml:dtx.DOMCollection)
+    {
+        var outXml = inXml.clone();
+        
+        // Get the Kdenlive clips, make a Map of proxyPath=>clipPath
+        var proxyMap = new StringMap();
+        var clips = outXml.find("kdenlive_producer");
+        for (c in clips)
+        {
+            var origClip = c.attr("resource");
+            var proxyClip = c.attr("proxy");
+            if (proxyClip != "-" && proxyClip != "")
+            {
+                proxyMap.set(proxyClip, origClip);
+            }
+        }
+
+        // Get the MLT producers, swap in real clips where proxies are used
+        var producers = outXml.find("producer property[name=resource]");
+        var mlt = outXml.filter(function (n) return n.tagName() == "mlt").getNode();
+        var basePath = mlt.attr("root") + "/";
+        var swapCount = 0;
+        for (p in producers)
+        {
+            var proxyPath = basePath + p.text();
+            if (proxyMap.exists(proxyPath))
+            {
+                var realPath = proxyMap.get(proxyPath);
+                p.setText(realPath);
+                swapCount++;
+            }
+        }
+        trace ('Swapped out $swapCount proxy clips');
+
+        // Remove kdenlivedoc
+        outXml.find("kdenlivedoc").removeFromDOM();
+
+        // Remove meta properties
+        outXml.find("producer property[name]").filter(function (n) return n.attr("name").startsWith("meta.")).removeFromDOM();
+
+        // Remove the aspect ratio properties
+        outXml.find("producer property[name=aspect_ratio]").removeFromDOM();
+
+        return outXml;
+    }
+
     function renderPortion(source, target, inPoint:Int, outPoint:Int, renderType:RenderType)
     {
+        // All the parts of our command call
         var renderer = "/usr/bin/kdenlive_render";
+        var inParam = 'in=$inPoint';
+        var outParam = 'out=$outPoint';
         var melt = "/usr/bin/melt";
-        var parameterString = switch (renderType)
+        var profile = "hdv_1080_50i";
+        var renderModule = "avformat";
+        var player = "-";
+        var argsString = switch (renderType)
         {
-            case MP3: 'in=$inPoint out=$outPoint $melt hdv_1080_50i avformat - $source $target f=mp3 acodec=libmp3lame ab=128k ar=44100 threads=8 real_time=-1';
-            case DVD: 'in=0 out=100 $melt hdv_1080_50i avformat - consumer:$source $target f=dvd vcodec=mpeg2video acodec=ac3 vb=5000k maxrate=8000k minrate=0 bufsize=1835008 packetsize=2048 muxrate=10080000 ab=192k ar=48000 s=720x576 g=15 me_range=63 trellis=1 mlt_profile=dv_pal_wide pass=1 threads=8 real_time=-1';
+            case MP3: 'f=mp3 acodec=libmp3lame ab=128k ar=44100 threads=8 real_time=-1';
+            case DVD: 'f=dvd vcodec=mpeg2video acodec=ac3 vb=5000k maxrate=8000k minrate=0 bufsize=1835008 packetsize=2048 muxrate=10080000 ab=192k ar=48000 s=720x576 g=15 me_range=63 trellis=1 mlt_profile=dv_pal_wide pass=1 threads=8 real_time=-1';
         }
-        var parameters = parameterString.split(" ");
 
+        // Stitch it all together as a parameter array
+        var parameters = [];
+        parameters.push(inParam);
+        parameters.push(outParam);
+        parameters.push(melt);
+        parameters.push(profile);
+        parameters.push(renderModule);
+        parameters.push(player);
+        parameters.push('consumer:$source');
+        parameters.push('$target');
+        for (a in argsString.split(" "))
+        {
+            parameters.push(a);
+        }
+
+        // Print our info for debugging purposes
         println("About to run render command: ");
         println('  Input:');
-        println('    $source, $target, $inPoint, $outPoint');
+        println('    Source: $source');
+        println('    Target: $target');
+        println('    $inPoint - $outPoint');
         println('  Command:');
         println('    $renderer ${parameters.join(" ")}');
 
+        // Run the command, return the result
         var result = Sys.command(renderer, parameters);
-
         if (result == 0)
         {
             return true;
