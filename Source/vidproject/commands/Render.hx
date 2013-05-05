@@ -171,15 +171,6 @@ class Render
         }
         trace ('Swapped out $swapCount proxy clips');
 
-        // Remove kdenlivedoc
-        outXml.find("kdenlivedoc").removeFromDOM();
-
-        // Remove meta properties
-        outXml.find("producer property[name]").filter(function (n) return n.attr("name").startsWith("meta.")).removeFromDOM();
-
-        // Remove the aspect ratio properties
-        outXml.find("producer property[name=aspect_ratio]").removeFromDOM();
-
         return outXml;
     }
 
@@ -195,7 +186,7 @@ class Render
         var player = "-";
         var argsString = switch (renderType)
         {
-            case MP3: 'f=mp3 acodec=libmp3lame ab=128k ar=44100 threads=8 real_time=-1';
+            case MP3: 'f=mp3 acodec=libmp3lame ab=92k ar=44100 threads=8 real_time=-1';
             case DVD: 'f=dvd vcodec=mpeg2video acodec=ac3 vb=5000k maxrate=8000k minrate=0 bufsize=1835008 packetsize=2048 muxrate=10080000 ab=192k ar=48000 s=720x576 g=15 me_range=63 trellis=1 mlt_profile=dv_pal_wide pass=1 threads=8 real_time=-1';
         }
 
