@@ -99,7 +99,8 @@ class SetupProject
 
 		if (FileSystem.exists(newPath) == false)
 		{
-			var mencoderArgs = '$oldFilePath -demuxer lavf -oac copy -ovc copy -of lavf=mp4 -o $newPath'.split(' ');
+			var mencoderArgs = '$oldFilePath -demuxer lavf -oac copy -ovc copy -of lavf=mp4 -o'.split(' ');
+			mencoderArgs.push(newPath);
 			
 			println('Running Command: ');
 			println('  mencoder ${mencoderArgs.join(" ")}');
