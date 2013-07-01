@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+    <meta title="VoseApp - Video Editing" package="au.edu.vose" version="0.0.1" company="Vose Seminary" />
+    <app path="Export" file="VoseApp" main="Main" />
+
+    <source path="Source" />
+
+    <window width="320" height="480" background="0x888888" fps="30"/>
+
+    <assets path="Assets" include="*" exclude="nme.svg"/>
+    <assets path="ui" include="*" exclude="defaults.xml|skins.xml"/>
+    <icon path="Assets/nme.svg" />
+
+    <haxelib name="openfl" />
+    <haxelib name="stablexui" />
+    <haxelib name="actuate" />
+
+    <ndll name="std" />
+    <ndll name="regexp" />
+    <ndll name="zlib" />
+
+</project>
