@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<!-- Initial screen -->
+<Scroll defaults="'Screen'">
+    <VBox defaults="'Menu'">
+
+        <Button text="'New Project'" defaults="'MenuItem'" on-click="$Main.newProject();"/>
+        <Widget defaults="'HR'"/>
+
+        <Button text="'New Video'" defaults="'MenuItem'" on-click="$Main.newVideo();"/>
+        <Widget defaults="'HR'"/>
+
+        <Button text="'Edit'" defaults="'MenuItem'" on-click="$Main.edit();"/>
+        <Widget defaults="'HR'"/>
+
+        <Button text="'Render'" defaults="'MenuItem'" on-click="$Main.render();"/>
+        <Widget defaults="'HR'"/>
+
+        <Button text="'Test'" defaults="'MenuItem'" on-click="$Main.test();"/>
+        <Widget defaults="'HR'"/>
+
+        <Button text="'Progress bar Example'" defaults="'MenuItem'" on-click="#ViewStack(screens).show('progressBars');"/>
+
+    </VBox>
+</Scroll>

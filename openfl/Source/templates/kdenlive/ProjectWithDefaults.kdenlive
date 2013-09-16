@@ -95,7 +95,7 @@
   <track producer="playlist1"/>
   <track hide="both" producer="playlist5"/>
  </tractor>
- <kdenlivedoc profile="hdv_1080_50i" kdenliveversion="0.9.6" version="0.88" projectfolder="/home/jason/kdenlive">
+ <kdenlivedoc profile="hdv_1080_50i" kdenliveversion="0.9.6" version="0.88" projectfolder="$projectFolder">
   <customeffects/>
   <documentproperties proxyimageminsize="2000" zonein="0" enableproxy="1" zoneout="100" generateproxy="1" zoom="7" verticalzoom="1" proxyextension="ts" position="49" documentid="1367214440089" generateimageproxy="0" proxyminsize="1000" proxyparams="-f mpegts -acodec libmp3lame -ac 2 -ab 128k -ar 48000 -vcodec mpeg2video -g 5 -deinterlace -s 480x270 -vb 400k"/>
   <documentmetadata/>
@@ -115,6 +115,40 @@ p, li { white-space: pre-wrap; }
   </tracksinfo>
   <kdenlive_producer duration="50" frame_size="1440x1080" thumbnail="25" in="0" analysisdata="" aspect_ratio="1.333333" mlt_service="colour" out="49" type="4" colour="0x000000ff" id="1" name="Black"/>
   <!-- Add more producers here -->
+  <dtx:loop for="clip in clips">
+    <kdenlive_producer 
+      audio_max="63" 
+      id="$id" 
+      pix_fmt="yuv420p" 
+      default_video="0" 
+      fps="50.000000" 
+      analysisdata="" 
+      name="$clipName" 
+      videocodecid="h264" 
+      colorspace="709" 
+      videocodec="H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10" 
+      proxy="$proxyPath" 
+      proxy_out="$duration" 
+      resource="$clipPath" 
+      default_audio="1" 
+      audiocodec="ATSC A/52A (AC-3)" 
+      duration="$duration" 
+      file_hash="$fileHash" 
+      aspect_ratio="1.333333" 
+      channels="2" 
+      frequency="48000" 
+      video_max="0" 
+      progressive="0" 
+      type="3" 
+      frame_size="1440x1080" 
+      file_size="$fileSize"
+    >
+    <metaproperty tool="" name="meta.attr.compatible_brands">isomiso2avc1mp41</metaproperty>
+    <metaproperty tool="" name="meta.attr.encoder">Lavf53.21.1</metaproperty>
+    <metaproperty tool="" name="meta.attr.major_brand">isom</metaproperty>
+    <metaproperty tool="" name="meta.attr.minor_version">512</metaproperty>
+    </kdenlive_producer>
+  </dtx:loop>
   <markers/>
   <groups/>
  </kdenlivedoc>

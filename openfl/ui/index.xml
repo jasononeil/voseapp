@@ -17,7 +17,7 @@
     <!-- Header -->
     <HBox id="'topMenu'" defaults="'TopMenu'">
         <Bmp src="'ui/android/img/ico/light/settings.png'" />
-        <Text defaults="'Default,H1'" text="'StablexUI'"/>
+        <Text defaults="'Default,H1'" text="'Vose Video Editing'"/>
     </HBox>
 
     <!-- Screens holder -->
@@ -26,37 +26,9 @@
         <!-- Initial screen -->
         <meta:include src="ui/main.xml"/>
 
-        <!-- Buttons demo -->
-        <meta:include src="ui/buttons.xml"/>
-        <meta:include src="ui/simpleButtonSettings.xml"/>
-
-        <!-- Toggles demo -->
-        <meta:include src="ui/toggles.xml"/>
-
-        <!-- Skins demo -->
-        <meta:include src="ui/skins.xml"/>
-        <meta:include src="ui/paintSkin.xml"/>
-        <meta:include src="ui/gradientSkin.xml"/>
-        <meta:include src="ui/tileSkin.xml"/>
-        <meta:include src="ui/scale9Skin.xml"/>
-
-        <!-- Text fields demo -->
-        <!-- <meta:include src="ui/textFields.xml"/> -->
-
         <!-- Progress bars demo -->
         <meta:include src="ui/progress.xml"/>
-
-        <!-- Options lists demo -->
-        <meta:include src="ui/options.xml"/>
-
-        <!-- Sliders demo -->
-        <meta:include src="ui/sliders.xml"/>
-
-        <!-- Tabs demo -->
-        <meta:include src="ui/tabs.xml"/>
-
-        <!-- ViewStack transitions demo -->
-        <meta:include src="ui/viewStack.xml"/>
+        
     </ViewStack>
 
     <!-- Main menu -->
@@ -94,7 +66,5 @@
             //recover default transition
             vs.trans = transition;
         "/>
-        <!-- recent button -->
-        <Button defaults="'MainRecent'" on-click=""/>
     </HBox>
 </Floating>

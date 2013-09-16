@@ -2,41 +2,63 @@ package vidproject.commands;
 
 using Detox;
 using StringTools;
+import vidproject.commands.Command;
+import haxe.PosInfos;
 import dtx.DOMNode;
 import haxe.ds.StringMap;
 import sys.FileSystem;
 import sys.io.File;
-import Sys.println;
+using tink.core.types.Outcome;
 
-class Render
+class RenderCommand extends Command
 {
+    var parts:Array<ExportDefinition>;
+    var exportDir:String;
+    var extension:String;
+    var projectExportFilePath:String;
+    var renderType:RenderType;
+
     public function new(project:String, renderType:RenderType)
     {
-        // Get the project file
-        var str = File.getContent(project);
-        var projectXml = str.parse();
+        super();
 
-        // Read the Xml to get segments to export
-        var parts = getSegmentsToExport(projectXml);
+        try {
+            this.renderType = renderType;
 
-        // Figure out the export path
-        var projectPath = project.split("/");
-        var projectFileName = projectPath.pop();
-        var extension = switch(renderType) {
-            case MP3: "MP3";
-            case DVD: "VOB";
+            // Get the project file
+            var str = File.getContent(project);
+            var projectXml = str.parse();
+
+            // Read the Xml to get segments to export
+            parts = getSegmentsToExport(projectXml);
+
+            // Figure out the export path
+            var projectPath = project.split("/");
+            var projectFileName = projectPath.pop();
+            extension = switch(renderType) {
+                case MP4: "MP4";
+                case MP3: "MP3";
+                case DVD: "VOB";
+            }
+
+            // Make sure we're not using proxy clips, and save a temp version of the project
+            var readyToRenderXml = prepareXmlForExport(projectXml);
+            var projectExportFileName = '.$projectFileName.${Date.now().getTime()}.mlt';
+            projectExportFilePath = projectPath.join("/") + "/" + projectExportFileName;
+            File.saveContent(projectExportFilePath, readyToRenderXml.html());
+
+            // Create the export DIR if it doesn't exist
+            exportDir = projectPath.join("/") + "/Exports/" + extension.toUpperCase();
+            if (!FileSystem.exists(exportDir)) FileSystem.createDirectory(exportDir);
+            
+            updateStatus( SReady );
+        } catch (e:Dynamic) {
+            updateStatus( SInvalid('Failed to setup Render command: $e') );
         }
+    }
 
-        // Make sure we're not using proxy clips, and save a temp version of the project
-        var readyToRenderXml = prepareXmlForExport(projectXml);
-        var projectExportFileName = '.$projectFileName.${Date.now().getTime()}.mlt';
-        var projectExportFilePath = projectPath.join("/") + "/" + projectExportFileName;
-        File.saveContent(projectExportFilePath, readyToRenderXml.html());
-
-        // Create the export DIR if it doesn't exist
-        var exportDir = projectPath.join("/") + "/Exports/" + extension.toUpperCase();
-        if (!FileSystem.exists(exportDir)) FileSystem.createDirectory(exportDir);
-        
+    override public function execute() 
+    {
         // Render each part, if it doesn't exist
         var showRmRfMessage = false;
         for (part in parts)
@@ -48,22 +70,23 @@ class Render
 
                 if (!result)
                 {
-                    println("Failed to render... Exiting early");
-                    showRmRfMessage = true;
-                    break;
+                    failWithMsg("Failed to render... Exiting early");
                 }
             }
             else 
             {
-                trace ('File $partFileName already exists, skipping rendering.  ');
-                showRmRfMessage = true;
+                failWithMsg('File $partFileName already exists, skipping rendering.  ');
             }
 
         }
-        if (showRmRfMessage)
-        {
-            trace ('  Run `rm -rf $exportDir/*` to delete all existing renders.');
-        }
+        log( 'Rendered ${parts.length} successfully' );
+        updateStatus( SCompleted );
+    }
+
+    function failWithMsg(msg:String, ?p:PosInfos) {
+        log (msg,p);
+        log ('  Run `rm -rf $exportDir/*` to delete all existing renders.', p);
+        updateStatus( SError(msg) );
     }
 
     // Given the project Xml, find the track by the given name
@@ -121,7 +144,7 @@ class Render
                     currentFrame = currentFrame + duration;
                     var endPoint = currentFrame;
                     // print "Export Part%s.vob from %s to %s" % (currentSegment, startPoint, endPoint)
-                    //trace ("~/Scripts/kdenlive/renderExcerpt.sh '02 Kdenlive/Lectures.kdenlive' '03 Exports/Part%s.vob' %s %s") % (currentSegment, startPoint, endPoint)
+                    //log ("~/Scripts/kdenlive/renderExcerpt.sh '02 Kdenlive/Lectures.kdenlive' '03 Exports/Part%s.vob' %s %s") % (currentSegment, startPoint, endPoint)
 
                     partsToExport.push({
                         segment: "Part" + currentSegment,
@@ -169,7 +192,7 @@ class Render
                 swapCount++;
             }
         }
-        trace ('Swapped out $swapCount proxy clips');
+        log ('Swapped out $swapCount proxy clips');
 
         return outXml;
     }
@@ -186,6 +209,7 @@ class Render
         var player = "-";
         var argsString = switch (renderType)
         {
+            case MP4: 'f=mp4 hq=1 acodec=aac ab=384k ar=48000 pix_fmt=yuv420p vcodec=libx264 minrate=0 vb=2000k g=250 bf=3 b_strategy=1 subcmp=2 cmp=2 coder=1 flags=+loop flags2=dcd8x8 qmax=51 subq=7 qmin=10 qcomp=0.6 qdiff=4 trellis=1 aspect=@16/9 pass=1 threads=8 real_time=-1 s=640x480';
             case MP3: 'f=mp3 acodec=libmp3lame ab=39k ar=22050 ac=1 threads=8 real_time=-1';
             case DVD: 'f=dvd vcodec=mpeg2video acodec=ac3 vb=5000k maxrate=8000k minrate=0 bufsize=1835008 packetsize=2048 muxrate=10080000 ab=192k ar=48000 s=720x576 g=15 me_range=63 trellis=1 mlt_profile=dv_pal_wide pass=1 threads=8 real_time=-1';
         }
@@ -206,13 +230,13 @@ class Render
         }
 
         // Print our info for debugging purposes
-        println("About to run render command: ");
-        println('  Input:');
-        println('    Source: $source');
-        println('    Target: $target');
-        println('    $inPoint - $outPoint');
-        println('  Command:');
-        println('    $renderer ${parameters.join(" ")}');
+        log ("About to run render command: ");
+        log ('  Input:');
+        log ('    Source: $source');
+        log ('    Target: $target');
+        log ('    $inPoint - $outPoint');
+        log ('  Command:');
+        log ('    $renderer ${parameters.join(" ")}');
 
         // Run the command, return the result
         var result = Sys.command(renderer, parameters);
@@ -222,7 +246,7 @@ class Render
         } 
         else 
         {
-            println('File $target may not have rendered correctly... the render process had a return other than 0');
+            log ('File $target may not have rendered correctly... the render process had a return other than 0');
             return false;
         }
     }
@@ -235,6 +259,7 @@ typedef ExportDefinition = {
 }
 
 enum RenderType {
+    MP4;
     MP3;
     DVD;
 }

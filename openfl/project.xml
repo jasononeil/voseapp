@@ -15,6 +15,9 @@
     <haxelib name="openfl" />
     <haxelib name="stablexui" />
     <haxelib name="actuate" />
+    <haxelib name="tink_core" />
+    <haxelib name="detox" />
+    <haxelib name="hxevents" />
 
     <ndll name="std" />
     <ndll name="regexp" />

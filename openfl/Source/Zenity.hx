@@ -56,6 +56,40 @@ class Zenity
 		}
 	}
 
+	public static function textInput( formDesc:String, inputName:String, ?fallback:String="" )
+	{
+		var args = [];
+		args.push("--forms");
+		args.push('--text=$formDesc');
+		args.push('--add-entry=$inputName');
+		return switch call( args ) {
+			case Success(text): text;
+			case Failure(_,_): fallback;
+		}
+	}
+
+	public static function pickItem( desc:String, choices:Array<String>, ?fallback:String="" ):String
+	{
+		var args = [];
+		args.push("--list");
+		args.push('--column=$desc');
+		for ( choice in choices ) {
+			args.push( choice );
+		}
+		return switch call( args ) {
+			case Success(text): text;
+			case Failure(_,_): fallback;
+		}
+	}
+
+	public static function alert( text:String )
+	{
+		var args = [];
+		args.push("--warning");
+		args.push('--text=$text');
+		call( args );
+	}
+
 	public static function call( args:Array<String> ):Result
 	{
 		var p = new Process( "zenity", args );

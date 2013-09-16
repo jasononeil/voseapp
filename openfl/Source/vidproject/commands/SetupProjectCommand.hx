@@ -1,13 +1,16 @@
 package vidproject.commands;
 
 import sys.FileSystem;
-import Sys.println;
-import templates.kdenlive.KdenliveProducer;
+import sys.io.File;
 import templates.kdenlive.ProjectWithDefaults;
-
+import vidproject.commands.Command;
+import haxe.PosInfos;
 using StringTools;
+using haxe.io.Path;
+using tink.core.types.Outcome;
+using Detox;
 
-class SetupProject 
+class SetupProjectCommand extends Command
 {
 	var parentFolder:String;
 	var projectName:String;
@@ -20,10 +23,12 @@ class SetupProject
 
 	public function new(parentFolder:String, projectName:String, importClips:Array<String>)
 	{
+		super();
+
 		// Sanitise the input
 
-		if (!parentFolder.endsWith("/")) parentFolder += "/";
-		if (projectName.endsWith("/")) projectName = projectName.substr(0, projectName.length - 1);
+		parentFolder = parentFolder.addTrailingSlash();
+		projectName = projectName.removeTrailingSlash();
 		if (importClips == null) importClips = [];
 
 		// Set as member variables
@@ -34,14 +39,25 @@ class SetupProject
 		this.importClips = importClips;
 		this.projectClips = [];
 		this.proxyClips = [];
+
+		updateStatus( SReady );
 	}
 
-	public function run()
+	override public function execute()
 	{
-		createFolderStructure();
-		copyVideosToMP4();
-		createProxyClips();
-		createKdenliveTemplate();
+		updateStatus( SInProgress() );
+		try {
+			createFolderStructure();
+			copyVideosToMP4();
+			createProxyClips();
+			createKdenliveTemplate();
+			updateStatus( SCompleted );
+			
+		} catch (e:Dynamic) {
+			var msg = 'Execution failed with error: $e';
+			trace (msg);
+			updateStatus( SError(msg) );
+		}
 	}
 
 	function createFolderStructure()
@@ -69,12 +85,12 @@ class SetupProject
 			var n = projectFolder + f;
 			if (FileSystem.exists(n) == false)
 			{
-				println('Creating folder $n');
+				trace ('Creating folder $n');
 				FileSystem.createDirectory(n);
 			}
 			else 
 			{
-				println('Folder already exists: $n');
+				trace ('Folder already exists: $n');
 			}
 		}
 	}
@@ -103,17 +119,17 @@ class SetupProject
 			mencoderArgs.unshift(oldFilePath);
 			mencoderArgs.push(newPath);
 			
-			println('Running Command: ');
-			println('  mencoder ${mencoderArgs.join(" ")}');
+			trace ('Running Command: ');
+			trace ('  mencoder ${mencoderArgs.join(" ")}');
 
 			var result = Sys.command("mencoder", mencoderArgs);
 
 			if (result != 0) throw 'Mencoder returned a bad result on clip $newName...  Please check the clip before continuing';
-			else println("Command was a success");
+			else trace ("Command was a success");
 		}
 		else 
 		{
-			println('Using existing clip: $newPath');
+			trace ('Using existing clip: $newPath');
 		}
 
 		projectClips.push(newPath);
@@ -139,37 +155,42 @@ class SetupProject
 		{
 			var avconvArgs = '-i $clipPath $proxyParams $proxyPath'.split(' ');
 			
-			println('Running Command: ');
-			println('  avconv ${avconvArgs.join(" ")}');
+			trace ('Running Command: ');
+			trace ('  avconv ${avconvArgs.join(" ")}');
 
 			var result = Sys.command("avconv", avconvArgs);
 
 			if (result != 0) throw 'AVCONV returned a bad result on clip $proxyName...  Please check the clip before continuing';
-			else println("Creating proxy clip with AVCONV was a success");
+			else trace ("Creating proxy clip with AVCONV was a success");
 		}
 		else 
 		{
-			println('Using existing proxy: $proxyPath');
+			trace ('Using existing proxy: $proxyPath');
 		}		
 	}
 
 	function createKdenliveTemplate()
 	{
-		var projectXml = new ProjectWithDefaults(projectFolder);
+		var projectXml = new ProjectWithDefaults();
+		projectXml.projectFolder = projectFolder;
 		
 		var i = 0;
+		var clips = [];
 		for (i in 0...projectClips.length)
 		{
-			println(' ${projectClips[i]} ${proxyClips[i]}');
-
-			var p = new KdenliveProducer();
-			p.clipName;
-			p.clipPath;
-			p.proxyPath;
-			p.fileSize;
-			p.fileHash;
-			p.id;
-			p.duration;
+			clips.push({
+				clipName: projectClips[i].withoutDirectory().withoutExtension(),
+				clipPath: projectClips[i],
+				proxyPath: proxyClips[i],
+				fileSize: FileSystem.stat( projectClips[i] ).size,
+				fileHash: haxe.crypto.Md5.encode( projectClips[i] ),
+				id: i+1,
+				duration: -1
+			});
 		}
+		projectXml.clips = clips;
+
+		var filename = '$parentFolder$projectName/$projectName.kdenlive';
+		File.saveContent( filename, projectXml.html() );
 	}
 }
