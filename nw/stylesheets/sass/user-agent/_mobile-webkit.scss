@@ -1,0 +1,13 @@
+* {
+	// Turn off default press states
+	-webkit-tap-highlight-color: transparent;
+
+	// Disable save image on long press
+	-webkit-touch-collout: none;
+
+	// Disable selection copy/paste
+	// -webkit-user-select: none;
+
+	// Disable dragging images
+	-webkit-user-drag: none;
+}

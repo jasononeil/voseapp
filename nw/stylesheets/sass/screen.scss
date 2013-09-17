@@ -1,0 +1,43 @@
+/* Welcome to Compass.
+ * In this file you should write your main styles. (or centralize your imports)
+ * Import this file using the following HTML or equivalent:
+ * <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css" /> */
+
+// Variable and Mixin definitions
+@import "app/_variables";
+
+// Vendor Imports
+@import "vendor/twitter/bootstrap/_bootstrap";
+@import "vendor/_bootstraptheme";
+@import "vendor/_fontawesome";
+// @import "vendor/datepicker/_datepicker";
+@import "compass/css3/images";
+@import "compass/css3/box-shadow";
+
+// App Imports
+@import "app/_layout";
+// @import "app/_fonts";
+// @import "app/_typography";
+
+// General imports
+@import "general/_print-utilities";
+@import "general/_bootstrap-additions";
+.btn {
+	outline: 0 !important;
+}
+
+// Feature Specific Imports
+@import "features/_login";
+@import "features/_allstudents";
+@import "features/_viewstudent";
+
+// User Agent specific imports
+@import "user-agent/_mobile-webkit";
+
+// For the admin task log thing 
+pre.task-log {
+	white-space: pre;
+	background: rgb(80,80,80);
+	color: white;
+	overflow-x: scroll;
+}

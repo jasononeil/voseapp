@@ -1,0 +1,45 @@
+#view-student {
+	.legend-small {
+		dt {
+			width: 30px;
+			float: left;
+			margin-right: 5px;
+			text-align: right;
+		}
+		dd {
+			
+		}
+	}
+	table.report {
+		thead th { text-align: center }
+		tbody th { font-weight: normal }
+		td { text-align: center; }
+	}
+	.avatar {
+		width: 300px;
+		background: rgb(100,100,100);
+		max-width: 100%;
+		height: auto;
+		display: block;
+	}
+	// Thin horizontal definition lists
+	.dl-horizontal {
+		dt { width: 60px; }
+		dd { margin-left: 80px; }
+	}
+	@media (max-width: ($screen-sm - 1)) {
+	  .dl-horizontal-thin {
+	    dt {
+	      float: left;
+	      width: 110px;
+	      clear: left;
+	      text-align: right;
+	      @include text-overflow();
+	    }
+	    dd {
+	      margin-left: 130px;
+	      @include clearfix(); // Clear the floated `dt` if an empty `dd` is present
+	    }
+	  }
+	}
+}

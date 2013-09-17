@@ -1,0 +1,46 @@
+// Thumbnails on list-group-items
+
+.list-group-item-thumb {
+	float: left;
+	margin: -10px 15px -10px -15px;
+}
+
+// Space between labels that are next to each other in a group
+
+.label-group {
+	.label + .label {
+		margin-left: 5px;
+	}
+}
+
+
+.panel {
+	// Border between multiple panel bodies
+	.panel-body + .panel-body {
+		border-top: 1px solid $list-group-border;
+	}
+	.panel-heading h4 {
+		font-size: 1em;
+		margin: 0;
+		font-weight: bold;
+	}
+}
+
+// Text inside progress bars
+
+.progress {
+	position: relative;
+	.progress-bar {
+		z-index: 1;
+		position: absolute;
+		
+	}
+	span {
+		position: absolute;
+		top: 0;
+		z-index: 2;
+		color: black; // You might need to change it
+		text-align: center;
+		width: 100%;
+	}
+}

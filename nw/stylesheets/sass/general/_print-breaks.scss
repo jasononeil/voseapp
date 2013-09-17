@@ -1,0 +1,39 @@
+@media print {
+	
+	// Allow breaks in most big elements, unless they have .no-break
+	div, section, table, tbody, ul, ol {
+		page-break-inside: auto;
+		&.no-break { page-break-inside: avoid; }
+	}
+
+	// Prevent breaks in small elements, unless they have .allow-break
+	tr, p, li {
+		page-break-inside:avoid; 
+		page-break-after:auto;
+
+		.allow-break { page-break-inside: auto; }
+	}
+
+	.page-break {
+		display: block;
+		height: 0;
+		page-break-after: always;
+	}
+
+	.print-spacer {
+		display: block;
+		height: 10px;
+		width: 100px;
+		background: blue;
+	}
+
+	// Repeat headers and footers on multiple pages
+	thead { display:table-header-group }
+	tfoot { display:table-footer-group }
+
+	// Prevent breaks after headers
+	header, h1, h2, h3, h4, h5, h6 { 
+		page-break-after: avoid;
+	}
+	
+}

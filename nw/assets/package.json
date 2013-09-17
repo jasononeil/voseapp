@@ -1,0 +1,11 @@
+{
+  "name": "VoseApp",
+  "description": "App to help with Vose Video Editing.",
+  "version": "0.1.0",
+  "main": "app://vose/index.html",
+  "window": {
+    "toolbar": true,
+    "width": 1220,
+    "height": 700
+  }
+}

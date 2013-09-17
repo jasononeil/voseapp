@@ -1,0 +1,32 @@
+.navbar-brand {
+	font-family: $headings-font-family;
+	font-weight: normal;
+	font-style: normal;
+}
+
+.jumbotron {
+	text-align: center;
+}
+
+p.text-center img.img-responsive {
+	display:inline-block;
+}
+
+h4, h5, h6 {
+	font-family: $font-family-sans-serif;
+}
+
+h4 {
+	font-size: 1.2em;
+	font-weight: bold;
+}
+
+h5 {
+	font-size: 1em;
+	font-weight: bold;
+}
+
+h6 {
+	font-size: 1em;
+	font-weight: normal;
+}
