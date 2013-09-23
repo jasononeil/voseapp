@@ -1,0 +1,10 @@
+<div class="panel panel-default">
+	<!-- Default panel contents -->
+	<div class="panel-heading"><h3>$title</h3></div>
+	<div class="list-group">
+		<dtx:loop dtx-name="itemLoop" for="item in items">
+			<a href="#" class="list-group-item" data-id="${item.name}"><i class="${item.icon}"></i> ${item.name} <span class="badge">${item.badge}</span></a>
+		</dtx:loop>
+		<div class="list-group-item text-center" dtx-name="buttons"></div>
+	</div>
+</div>

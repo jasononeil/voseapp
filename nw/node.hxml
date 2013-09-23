@@ -1,11 +1,14 @@
 -lib node-api
 -lib detox
 -lib dtx-bootstrap
+-lib promhx
 -cp src
 
 --macro npm.Package.export("out/package.json")
+
 -dce full
 -D embed_js
+-debug
 
 -main VoseApp
 -js out/app.js
