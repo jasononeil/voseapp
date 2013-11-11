@@ -2,18 +2,62 @@
 	<!-- Default panel contents -->
 	<div class="panel-heading"><h3>$title</h3></div>
 	<div class="panel-body">
-		<div class="btn-toolbar">
-			<a href="#" class="btn btn-default" dtx-name="renameVideo">Rename Video</a>
-			<a href="#" class="btn btn-default" dtx-name="deleteVideo">Delete Video</a>
+		
+		
+		<div>
+			<h4>Clips</h4>
+			<input name="fileSelect[]" type="file" multiple="" dtx-name="fileSelect" dtx-hide="kdenliveCreated" />
+			<ul>
+				<dtx:loop dtx-name="existingClipsLoop" for="filename in existingClips">
+					<li>$filename</li>
+				</dtx:loop>
+				<dtx:loop dtx-name="clipsToImportLoop" for="filename in clipsToImport">
+					<li>$filename (ready to add)</li>
+				</dtx:loop>
+			</ul>
+			<div class="btn-toolbar" dtx-name="importClipsToolbar" dtx-hide="kdenliveCreated">
+				<a class="btn btn-large btn-primary" href="javascript:void(0)" dtx-name="importClips">Import new clips</a>
+				<a class="btn btn-large btn-default" href="javascript:void(0)" dtx-name="resetImportClips">Reset</a>
+			</div>
 		</div>
-		<h4>Clips</h4>
-		<h4>Editing</h4>
-		<h4>Render and Upload</h4>
-		<div class="container">
-			<ul id="addressbar" class="breadcrumb"></ul>
+		
+		<div dtx-show="clipsCopied">
+			<h4>Editing</h4>
+			<a href="#" class="btn btn-large btn-primary" dtx-name="editBtn">Edit in Kdenlive</a>
 		</div>
-		<div class="container">
-			<ul style="margin: 5px;" id="files"></ul>
+		
+		<div dtx-show="kdenliveCreated">
+			<h4>Render</h4>
+			<div class="btn-toolbar">
+				<a href="#" class="btn btn-large btn-primary" dtx-name="renderMP3Btn">Render MP3 (Audio)</a>
+				<a href="#" class="btn btn-large btn-primary" dtx-name="renderMP4Btn">Render MP4 (Web Video)</a>
+				<a href="#" class="btn btn-large btn-primary" dtx-name="renderVOBBtn">Render VOB (DVD)</a>
+			</div>
 		</div>
+		
+		<div dtx-show="vobRendered">
+			<h4>DVD</h4>
+			<div class="btn-toolbar">
+				<a href="#" class="btn btn-large btn-primary" dtx-name="dvdStylerBtn">Edit in DVD Styler</a>
+				<a href="#" class="btn btn-large btn-primary" dtx-name="burnIsoBtn" dtx-show="isoCreated">Burn DVD</a>
+			</div>
+		</div>
+		
+		<div dtx-show="mp3Rendered || mp4Rendered">
+			<h4>Upload</h4>
+			<div class="btn-toolbar">
+				<a href="#" class="btn btn-large btn-primary" dtx-name="uploadToVimeoBtn" dtx-show="mp4Rendered">Upload MP4 To Vimeo</a>
+				<a href="#" class="btn btn-large btn-primary" dtx-name="uploadToMP3Button" dtx-show="mp3Rendered">Upload MP3 to Moodle</a>
+			</div>
+		</div>
+
+		<div>
+			<h4>This Video</h4>
+			<div class="btn-toolbar">
+				<a href="#" class="btn btn-default" dtx-name="renameVideo">Rename Video</a>
+				<a href="#" class="btn btn-default" dtx-name="deleteVideo">Delete Video</a>
+			</div>
+		</div>
+
 	</div>
 </div>

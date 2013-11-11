@@ -49,7 +49,7 @@ extern class Queue
 
 		The "jobType" should have a corresponding type defined with `process`
 	**/
-	function create( jobType:String, data:{} ):Job;
+	function create( jobType:String, data:Dynamic ):Job;
 
 	/**
 		Add a callback for processing a specific type of job.
@@ -86,9 +86,14 @@ extern class Job
 	static function get( id:Int ):Job;
 
 	/**
+		The ID of the job
+	**/
+	var id:Int;
+
+	/**
 		The data that was associated with this job
 	**/
-	var data:{};
+	var data:Dynamic;
 
 	/**
 		Change the priority.
@@ -154,7 +159,7 @@ extern class Job
 	function progress( completed:Int, total:Int ):Void;
 
 	/**
-		Update the progress marker for this job
+		Trigger events
 	**/
 	@:overload(function ( event:String, cb:Int->Void ):Void {})
 	function on( event:String, cb:Void->Void ):Void;

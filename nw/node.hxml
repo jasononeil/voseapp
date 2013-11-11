@@ -1,7 +1,8 @@
 -lib node-api
 -lib detox
 -lib dtx-bootstrap
--lib promhx
+-lib tink_core
+-lib compiletime
 -cp src
 
 --macro npm.Package.export("out/package.json")
@@ -12,3 +13,4 @@
 
 -main VoseApp
 -js out/app.js
+-xml doc/js.xml

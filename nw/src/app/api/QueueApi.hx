@@ -3,34 +3,78 @@ package app.api;
 import js.npm.FFMpeg;
 import js.npm.Kue;
 import js.npm.Kue.Queue;
+import js.support.Callback in NodeCallback;
+import js.node.ChildProcess;
+using haxe.io.Path;
+using tink.CoreApi;
 
 class QueueApi
 {
-	var queue:Kue;
+	var queue:Queue;
+	var config(get,null):Config;
+	var futures:Map<String,Map<Int,FutureTrigger<Outcome<Noise,String>>>>;
+	
 	public function new() {
-		var queue = Kue.createQueue();
+		futures = new Map();
+		queue = Kue.createQueue();
+		addCommand( "ConvertToMP4", processConvertToMP4 );
 	}
 
-	public function copyMultipleMTStoSingleMP4(inFiles:Array<String>, tmpFolder:String, outFile:String) {
-		if (inFiles==null || inFiles.length==0) throw "At least one input file must be specified";
-		if (tmpFolder==null) throw "Temporary Folder file must be specified";
-		if (outFile==null) throw "Output file must be specified";
+	function addCommand( name:String, cb:Job->NodeCallback<String>->Void ) {
+		if ( futures.exists(name)==false ) {
+			queue.process( name, cb );
+			trace ("ADDING A NEW COMMAND");
+			futures[name] = new Map();
+		}
+	}
 
-		var ffmpeg = new FFMpeg({
-			source: inFiles.shift()
-		});
+	static var numConvertJobs:Int = 0;
 
-		for (file in inFiles) {
-			ffmpeg.mergeAdd( file );
+	public function convertToMP4( inFile:String, currentProject:String, currentVideo:String ) {
+		var name = inFile.withoutDirectory().withoutExtension();
+		var outFile = '${config.projectFolders[0]}$currentProject/$currentVideo/RawFootage/$name.MP4';
+		
+		var id = numConvertJobs++;
+		var f = Future.trigger();
+		futures["ConvertToMP4"][id] = f;
+
+		var data = {
+			convertID: id,
+			inFile: inFile,
+			outFile: outFile,
+			title: 'Import $name into $currentProject/$currentVideo'
 		}
 
-		ffmpeg.onProgress( function(p) {
-			trace ('${p.frames} ${p.timemark}');
-		});
+		var job = queue.create( "ConvertToMP4", data );
+		job.save();
 
-		ffmpeg.mergeToFile( outFile, function () {
-			trace ("Done");
-		});
+		return f.asFuture();
 	}
 
+	function processConvertToMP4( job:Job, done:NodeCallback<String> ) {
+		var inFile:String = job.data.inFile;
+		var outFile:String = job.data.outFile;
+		var cmd = 'gnome-terminal -e "mencoder $inFile -demuxer lavf -oac copy -ovc copy -of lavf=mp4 -o $outFile"';
+		return execute( cmd, false, done, futures["ConvertToMP4"][job.data.convertID] );
+	}
+
+	function get_config() {
+		return VoseApp.inst.config;
+	}
+
+	function execute( cmd:String, ?ignoreStderr=false, done:NodeCallback<String>, ft:FutureTrigger<Outcome<Noise,String>> ) {
+		trace ( 'About to execute this command:' );
+		trace ( '  $cmd' );
+		ChildProcess.exec( cmd, {}, function (err,stdout,stderr) {
+			if ( stderr!="" && ignoreStderr==false ) {
+				var err = 'STDOUT: $stdout\n\nSTDERR: $stderr';
+				ft.trigger( Failure(err) );
+				done(err, null);
+			}
+			else {
+				ft.trigger( Success(Noise) );
+				done(null, "Completed.");
+			}
+		});
+	}
 }

@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mlt title="Anonymous Submission" version="0.8.8" root="/home/jason" LC_NUMERIC="en_AU.UTF-8">
+ <profile width="1440" display_aspect_den="9" colorspace="709" frame_rate_den="1" description="HDV 1440x1080i 25 fps" height="1080" display_aspect_num="16" frame_rate_num="25" progressive="0" sample_aspect_num="4" sample_aspect_den="3"/>
+ <producer in="0" out="500" id="black">
+  <property name="mlt_type">producer</property>
+  <property name="length">15000</property>
+  <property name="eof">pause</property>
+  <property name="resource">black</property>
+  <property name="aspect_ratio">0</property>
+  <property name="mlt_service">colour</property>
+ </producer>
+ <playlist id="black_track">
+  <entry in="0" out="49" producer="black"/>
+ </playlist>
+ <playlist id="playlist2">
+  <filter id="channelcopy">
+   <property name="track">0</property>
+   <property name="to">1</property>
+   <property name="mlt_type">filter</property>
+   <property name="mlt_service">channelcopy</property>
+   <property name="kdenlive_id">channelcopy</property>
+   <property name="tag">channelcopy</property>
+   <property name="kdenlive_ix">1</property>
+   <property name="kdenlive_info"/>
+   <property name="from">0</property>
+   <property name="swap">0</property>
+  </filter>
+ </playlist>
+ <producer in="0" out="49" id="1">
+  <property name="mlt_type">producer</property>
+  <property name="length">50</property>
+  <property name="eof">pause</property>
+  <property name="resource">0x000000ff</property>
+  <property name="aspect_ratio">1.333333</property>
+  <property name="mlt_service">colour</property>
+ </producer>
+ <playlist id="playlist3">
+  <entry in="0" out="49" producer="1"/>
+ </playlist>
+ <playlist id="playlist4">
+  <entry in="0" out="49" producer="1"/>
+  <filter out="-1" id="pan_zoom">
+   <property name="track">0</property>
+   <property name="background">colour:0x00000000</property>
+   <property name="mlt_type">filter</property>
+   <property name="mlt_service">affine</property>
+   <property name="kdenlive_id">pan_zoom</property>
+   <property name="tag">affine</property>
+   <property name="kdenlive_ix">1</property>
+   <property name="kdenlive_info"/>
+   <property name="transition.geometry">0%,0%:100%x100%</property>
+   <property name="transition.distort">0</property>
+  </filter>
+ </playlist>
+ <playlist id="playlist0">
+  <entry in="0" out="49" producer="1"/>
+  <filter out="-1" id="filter0">
+   <property name="track">0</property>
+   <property name="background">colour:0x00000000</property>
+   <property name="mlt_type">filter</property>
+   <property name="mlt_service">affine</property>
+   <property name="kdenlive_id">pan_zoom</property>
+   <property name="tag">affine</property>
+   <property name="kdenlive_ix">1</property>
+   <property name="kdenlive_info"/>
+   <property name="transition.geometry">0%,0%:100%x100%</property>
+   <property name="transition.distort">0</property>
+  </filter>
+ </playlist>
+ <playlist id="playlist1">
+  <entry in="0" out="49" producer="1"/>
+  <filter out="-1" id="filter1">
+   <property name="track">0</property>
+   <property name="background">colour:0x00000000</property>
+   <property name="mlt_type">filter</property>
+   <property name="mlt_service">affine</property>
+   <property name="kdenlive_id">pan_zoom</property>
+   <property name="tag">affine</property>
+   <property name="kdenlive_ix">1</property>
+   <property name="kdenlive_info"/>
+   <property name="transition.geometry">0%,0%:100%x100%</property>
+   <property name="transition.distort">0</property>
+  </filter>
+ </playlist>
+ <playlist id="playlist5">
+  <entry in="0" out="49" producer="1"/>
+ </playlist>
+ <tractor title="Anonymous Submission" global_feed="1" in="0" out="49" id="maintractor">
+  <property name="meta.volume">1</property>
+  <track producer="black_track"/>
+  <track hide="video" producer="playlist2"/>
+  <track producer="playlist3"/>
+  <track producer="playlist4"/>
+  <track producer="playlist0"/>
+  <track producer="playlist1"/>
+  <track hide="both" producer="playlist5"/>
+ </tractor>
+ <kdenlivedoc profile="hdv_1080_50i" kdenliveversion="0.9.6" version="0.88" projectfolder="/home/jason/kdenlive">
+  <customeffects/>
+  <documentproperties proxyimageminsize="2000" zonein="0" enableproxy="1" zoneout="100" generateproxy="1" zoom="7" verticalzoom="1" proxyextension="ts" position="49" documentid="1367214440089" generateimageproxy="0" proxyminsize="1000" proxyparams="-f mpegts -acodec libmp3lame -ac 2 -ab 128k -ar 48000 -vcodec mpeg2video -g 5 -deinterlace -s 480x270 -vb 400k"/>
+  <documentmetadata/>
+  <documentnotes>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'Ubuntu'; font-size:8pt; font-weight:400; font-style:normal;">
+&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">&lt;br />&lt;/p>&lt;/body>&lt;/html></documentnotes>
+  <profileinfo width="1440" display_aspect_den="9" frame_rate_den="1" description="HDV 1440x1080i 25 fps" height="1080" frame_rate_num="25" display_aspect_num="16" progressive="0" sample_aspect_num="4" sample_aspect_den="3"/>
+  <tracksinfo>
+   <trackinfo blind="1" mute="0" locked="0" trackname="Audio 1" type="audio"/>
+   <trackinfo blind="0" mute="0" locked="0" trackname="Default"/>
+   <trackinfo blind="0" mute="0" locked="0" trackname="Zoom1"/>
+   <trackinfo blind="0" mute="0" locked="0" trackname="Zoom2"/>
+   <trackinfo blind="0" mute="0" locked="0" trackname="Zoom3"/>
+   <trackinfo blind="1" mute="1" locked="0" trackname="Break"/>
+  </tracksinfo>
+  <kdenlive_producer duration="50" frame_size="1440x1080" thumbnail="25" in="0" analysisdata="" aspect_ratio="1.333333" mlt_service="colour" out="49" type="4" colour="0x000000ff" id="1" name="Black"/>
+  <!-- Add more producers here -->
+  <markers/>
+  <groups/>
+ </kdenlivedoc>
+</mlt>

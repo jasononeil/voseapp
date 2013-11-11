@@ -6,12 +6,15 @@ import app.view.PanelList;
 import bootstrap.Button;
 import fontawesome.Icons;
 import js.Browser;
+import js.html.InputElement;
 import js.node.Fs;
 import js.npm.Kue;
 import js.npm.nodewebkit.App;
 import js.npm.FFMpeg;
 import haxe.Json;
 using Detox;
+using tink.CoreApi;
+using tink.core.SurpriseHelper;
 
 class VoseApp
 {
@@ -36,26 +39,10 @@ class VoseApp
 		
 		Detox.ready( run );
 
-		FFMpeg.getMetadata( "/home/jason/VoseProjects/camera/00006.MTS", function(meta,err) {
-			if (err!=null) throw err;
-			trace (meta.video.aspectString);
-		} );
-
 		setupKue();
 	}
 
 	function setupKue() {
-		var queue = new QueueApi();
-
-		queue.copyMultipleMTStoSingleMP4(
-			[
-				"/home/jason/VoseProjects/camera/00011.MTS",
-				"/home/jason/VoseProjects/camera/00011.MTS",
-			],
-			"/home/jason/tmp/",
-			"/home/jason/VoseProjects/joined.MP4"
-		);
-
 		var jobs = Kue.createQueue();
 		Kue.app.listen( 3654 );
 	}
@@ -72,7 +59,7 @@ class VoseApp
 		// Set up the panels
 		projectsPanel = new PanelList( "Projects" );
 		videosPanel = new PanelList( "Videos" );
-		currentVideoPanel = new CurrentVideoPanel( "Current Video" );
+		setupCurrentVideoPanel();
 		"#projects-panel".find().append( projectsPanel );
 		"#videos-panel".find().append( videosPanel );
 		"#current-video-panel".find().append( currentVideoPanel );
@@ -94,9 +81,67 @@ class VoseApp
 		var newProjectBtn = new Button( "Delete Project", Icons.iconPlus(), Default);
 		newProjectBtn.click( function(e) deleteProject(currentProject) ).appendTo( videosPanel.buttons );
 
+
+	}
+
+	function setupCurrentVideoPanel() {
+		currentVideoPanel = new CurrentVideoPanel( "Current Video" );
+
+		// Set up the "Rename" and "Delete" functionality
+
 		currentVideoPanel.renameVideo.click( function(e) renameVideo(currentProject, currentVideo) );
 		currentVideoPanel.deleteVideo.click( function(e) deleteVideo(currentProject, currentVideo) );
 
+		// Set up the "Import Clips functionality"
+
+		currentVideoPanel.fileSelect.change( function(_) {
+			var fileSelect:InputElement = cast currentVideoPanel.fileSelect;
+			var files = currentVideoPanel.fileSelect.val().split( ";" );
+			for ( f in files ) {
+				currentVideoPanel.clipsToImport.push( f );
+			}
+			if ( files.length>0 ) {
+				currentVideoPanel.clipsToImportLoop.setList( currentVideoPanel.clipsToImport );
+				currentVideoPanel.importClipsToolbar.show();
+			}
+		});
+		currentVideoPanel.importClips.click( function(_) {
+			var clips = currentVideoPanel.clipsToImportLoop.getItems();
+			var allFutures = [];
+			for ( c in clips.copy() ) {
+				var done = api.queueApi.convertToMP4( c.input, currentProject, currentVideo );
+				allFutures.push( done );
+				done.handle( function (outcome) {
+					switch outcome {
+						case Success(_): 
+							currentVideoPanel.clipsToImportLoop.removeItem( c );
+							currentVideoPanel.existingClipsLoop.addItem( c.input );
+						case Failure(_): 
+							alert( 'Failed to import clip ${c.input}' );
+					}
+				});
+			}
+			Future.ofMany( allFutures ).handle( function (outcomes) {
+				var outcome = try {
+					for ( o in outcomes ) o.sure();
+					Success(Noise);
+				} catch ( e:Dynamic ) Failure(e);
+				
+				switch outcome {
+					case Success(_): 
+						updateCurrentVideoPanel( currentProject, currentVideo );
+						alert( '${outcomes.length} clips imported' );
+					case Failure(e): 
+						alert( 'Failed to import some clips...' );
+				}
+
+			});
+		});
+		currentVideoPanel.resetImportClips.click( function(_) currentVideoPanel.clipsToImport = [] );
+
+		// Set up the "Edit in Kdenlive" functionality
+
+		currentVideoPanel.editBtn.click( function(_) editInKdenlive( currentProject, currentVideo ) );
 	}
 
 	function updateProjectsPanel() {
@@ -143,8 +188,22 @@ class VoseApp
 		videosPanel.find( '.active' ).removeClass( 'active' );
 		videosPanel.find( '[data-id="$currentVideo"]' ).addClass("active");
 
-		currentVideoPanel.show();
+		currentVideoPanel.importClipsToolbar.hide();
+		currentVideoPanel.existingClips = [];
+		currentVideoPanel.clipsToImport = [];
+		currentVideoPanel.existingClipsLoop.preventDuplicates = true;
+		currentVideoPanel.clipsToImportLoop.preventDuplicates = true;
+
 		currentVideoPanel.title = 'Video: $project / $video';
+
+		var clipsLoaded = api.projectApi.getClipsInVideo( project, video )
+			.then( function (clips) currentVideoPanel.existingClips = clips )
+			.error( function (e) alert('Failed to get clips in video: $e') );
+
+		api.projectApi.getVideoStatus( project, video )
+			.handle( function (status) currentVideoPanel.setStatus(status) );
+
+		currentVideoPanel.show();
 	}
 
 	function newProject() {
@@ -201,6 +260,10 @@ class VoseApp
 			.then( function (_) updateVideosPanel(project) )
 			.error( function (e) alert('Failed to delete video: $e') );
 		}
+	}
+
+	function editInKdenlive( currentProject:String, currentVideo:String ) {
+		api.projectApi.editInKdenlive( currentProject, currentVideo );
 	}
 
 	function alert( e:Dynamic ) {
